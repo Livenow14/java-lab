@@ -102,8 +102,8 @@
 - 설정한 두 지역중 겹치는 부분 - intersectionTest
 - 기준이 되는 지역에 다른 지역이 포함되지 않는 부분 - differenceTest
 - 겹치는 부분을 제외한 부분 - symDifferenceTest
-- 두 지역을 합친 부분 - unionTest
-등등을 테스트로 coordinate(위도경도)를 찾고, 이를 https://geojson.io/#map=16/37.5111/127.1001로 복하아여 확인합니다.
+- 두 지역을 합친 부분 - unionTest  
+등등을 테스트로 coordinate(위도경도)를 찾고, 이를 https://geojson.io/#map=16/37.5111/127.1001로 복사하여 확인합니다.
 
 ### 1. 설정한 두 지역중 겹치는 부분 - intersectionTest
 결과값: 
@@ -141,7 +141,7 @@
   ]
 }
 ```
-결과사진:
+결과사진:  
 <img width="500" alt="image" src="https://user-images.githubusercontent.com/48986787/159676532-dac8b59a-4471-4e7c-9677-d3ae189e201f.png">
 
 
@@ -167,7 +167,7 @@
 [127.103757, 37.508767]
 
 ```
-결과사진:
+결과사진:  
 <img width="520" alt="image" src="https://user-images.githubusercontent.com/48986787/159688427-56a63f60-70aa-41c7-8826-05d43341a625.png">
 
 ```java
@@ -239,7 +239,7 @@
 [127.107289, 37.513573], 
 [127.102535, 37.511337]
 ```
-결과사진:
+결과사진:  
 <img width="504" alt="image" src="https://user-images.githubusercontent.com/48986787/159690659-ced4b905-0e9a-4adc-9f19-e687508d8533.png">
 
 ``` java
@@ -334,9 +334,10 @@
 [127.098942, 37.509811], 
 [127.097633, 37.509811]
 ```
+
+결과사진:  
 <img width="500" alt="image" src="https://user-images.githubusercontent.com/48986787/159691329-a5c0e355-4bd9-4d52-94e6-0c63236f7cf2.png">
 
-결과사진:
 ```java
 {
   "type": "FeatureCollection",
@@ -369,3 +370,38 @@
   ]
 }
 ```
+
+## H3
+### 준비물 
+- H3 라이브러리: https://github.com/uber/h3-java
+  - 잭슨 라이브러리: https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.13.2 
+  - docs: https://h3geo.org/
+- H3 
+  - 시각화 사이트: https://kepler.gl/demo
+  - 하나의 h3Address를 통해 보기: https://wolf-h3-viewer.glitch.me/?h3=8c30e1d9b9999ff
+
+### 테스트 설명
+H3는 위도, 경도, 해상도(resolution)를 이용하여 해당위치의 육각형을 만들어줘요.  
+위에서 살펴본 Geojson을 통해 설정한 지역의 내부에 포함되는 육각형또한 만들어줍니다.      
+아래 사진은 앞서 살펴본 unionTest 테스트의 결과로 나온 GeoJson을 통해 석촌호수의 지역을 H3로 표현한 것이에요.
+<img width="1072" alt="image" src="https://user-images.githubusercontent.com/48986787/160285349-4b731c78-7ce1-4a55-a7ff-07946d13283d.png">
+이를 만들어보는 실습을 진행합니다. 
+
+### 설명은 테스트에 
+`h3Test`는 라이브러리에서 제공하는 api를 test해요, `H3TestExam`은 실습테스트에요.
+
+### 이슈 
+#### compact시 빈 공간이 생기는 문제(그림 참조)  
+<img width="882" alt="image" src="https://user-images.githubusercontent.com/48986787/160115591-c0ed5c0e-cf6a-410d-a7ad-d8cd8d2e1221.png">
+
+polyfill로 동일한 resolution의 h3Address를 만들고, compact를 진행하면, 빈공간이 발생해요.    
+
+#### 해결방법  
+공식 깃헙에서 설명하기로, compact는 그 자체로 압축이기 때문에, 빈공간이 생길 수 밖에 없다고 해요.  
+그렇기 때문에, 빈공간이 생기길 원치않는다면, polyfill을 통해 생성된 H3Address만 사용하길 권장해요.("테스트 설명" 목차 아래의 그림 참고)   
+즉, 목적에 따라 다른데, 위치값을 통한 계산이 목적이라면, uncompact된 h3Address(polyfill 된 h3Address)를,   
+데이터 전송목적이라면 compact후 -> 전송 -> 받는 곳에서 uncompact를 진행하여 사용해도 좋다고 합니다.
+
+- https://github.com/uber/h3-js/issues/99#issuecomment-710659522
+- https://stackoverflow.com/questions/64384650/h3-hexagons-not-matching
+
